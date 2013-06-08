@@ -126,34 +126,42 @@ JSBin
 			<input message="Name:" addproperty="test.name" defaultvalue="${date}-" />
 			<input message="Title:" addproperty="test.title" defaultvalue="${test.name}" />
 
-			<setProperty name="test.index.html" value="${project.bin.test}/${test.name}/index.html" />
-			<setProperty name="test.normalize.css" value="${project.bin.test}/${test.name}/css/normalize.css" />
-			<setProperty name="test.jQuery.js" value="${project.bin.test}/${test.name}/js/libs/jquery-${jQueryVersion}.min.js" />
+			<setProperty name="test.index.html" value="${test.dir}/${test.name}/index.html" />
+			<setProperty name="test.normalize.css" value="${test.dir}/${test.name}/css/normalize.css" />
+			<setProperty name="test.main.css" value="${test.dir}/${test.name}/css/main.css" />
+			<setProperty name="test.jQuery.js" value="${test.dir}/${test.name}/js/libs/jquery-${jQueryVersion}.min.js" />
+			<setProperty name="test.agJS.js" value="${test.dir}/${test.name}/js/libs/agJS.js" />
+			<setProperty name="test.config.js" value="${test.dir}/${test.name}/js/config.js" />
+			<setProperty name="test.main.js" value="${test.dir}/${test.name}/js/main.js" />
 
 			<propertyfile file="${basedir}/ant/build-info.properties">
 				<entry key="current.test" type="string" value="${test.name}" />
 			</propertyfile>
 
-
-			<mkdir dir="${project.bin.test}/${test.name}" />
-			<mkdir dir="${project.bin.test}/${test.name}/css" />
-			<mkdir dir="${project.bin.test}/${test.name}/img" />
-			<mkdir dir="${project.bin.test}/${test.name}/js" />
-			<mkdir dir="${project.bin.test}/${test.name}/js/libs" />
+			<mkdir dir="${test.dir}/${test.name}" />
+			<mkdir dir="${test.dir}/${test.name}/css" />
+			<mkdir dir="${test.dir}/${test.name}/img" />
+			<mkdir dir="${test.dir}/${test.name}/js" />
+			<mkdir dir="${test.dir}/${test.name}/js/libs" />
 
 			<!-- copy index template -->
-			<copy file="${project.bin.templates}/index.html" tofile="${test.index.html}" />
-			<copy file="${project.bin.templates}/css/normalize.css" tofile="${test.normalize.css}" />
+			<copy file="${templates.dir}/index.html" tofile="${test.index.html}" />
+			<copy file="${templates.dir}/css/normalize.css" tofile="${test.normalize.css}" />
+			<copy file="${templates.dir}/css/main.css" tofile="${test.main.css}" />
+			<copy file="${templates.dir}/js/libs/jquery-${jQueryVersion}.min.js" tofile="${test.jQuery.js}" />
+			<copy file="${templates.dir}/js/config.js" tofile="${test.config.js}" />
+			<copy file="${agJS.dir}/agJS.js" tofile="${test.agJS.js}" />
+			<copy file="${templates.dir}/js/main.js" tofile="${test.main.js}" />
 
 			<!-- replace title -->
 			<replaceregexp flags="-g">
-				<fileset dir="${project.bin.test}/${test.name}" />
+				<fileset dir="${test.dir}/${test.name}" />
 				<regexp pattern="%title" />
 				<substitution expression="${test.title}" />
 			</replaceregexp>
 
 			<replaceregexp flags="-g">
-				<fileset dir="${project.bin.test}/${test.name}" />
+				<fileset dir="${test.dir}/${test.name}" />
 				<regexp pattern="%jQueryVersion" />
 				<substitution expression="${jQueryVersion}" />
 			</replaceregexp>
@@ -161,5 +169,32 @@ JSBin
 			<eclipse.refreshLocal resource="${project.name}" depth="infinite" />
 		</target>
 
+		<target name="1.b Project Index" description="1.a Project Index">
+			<property name="browser" location="${browser.ff.location}" />
+			<exec executable="${browser}" spawn="true">
+				<arg value="${project.browse}/${project.name}/${test.path}" />
+			</exec>
+		</target>
+
+		<target name="1.c Run Latest Test Firefox" description="1.c Run Latest Test Firefox">
+			<property name="browser" location="${browser.ff.location}" />
+			<exec executable="${browser}" spawn="true">
+				<arg value="${project.browse}/${project.name}/${test.path}/${current.test}" />
+			</exec>
+		</target>
+
+		<target name="1.d Run Latest Test Chrome" description="1.d Run Latest Test Chrome">
+			<property name="browser" location="${browser.chrome.location}" />
+			<exec executable="${browser}" spawn="true">
+				<arg value="${project.browse}/${project.name}/${test.path}/${current.test}" />
+			</exec>
+		</target>
+
+		<target name="1.e Run Latest Test IE" description="1.b.c Run Latest Test IE">
+			<property name="browser" location="${browser.ie.location}" />
+			<exec executable="${browser}" spawn="true">
+				<arg value="${project.browse}/${project.name}/${test.path}/${current.test}" />
+			</exec>
+		</target>
 
 	</project>
