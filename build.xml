@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  
+@author Luis Martinez, Less Rain (luis@lessrain.net) 
+JSBin
+-->
+<project name="JSBin" basedir=".">
+
+	<description>
+    	JSBin
+    </description>
+
+	<!-- PROJECT SETTINGS -->
+	<property environment="env" />
+	<property file="${basedir}/ant/build-${env.COMPUTERNAME}.properties" />
+	<property file="${basedir}/ant/build-info.properties" />
+	<property file="${basedir}/ant/build.properties" />
+
+	<taskdef resource="net/sf/antcontrib/antlib.xml">
+		<classpath>
+			<pathelement location="ant-lib/ant-contrib-1.0b3.jar" />
+		</classpath>
+	</taskdef>
+
+	<macrodef name="setProperty">
+		<attribute name="name" />
+		<attribute name="value" />
+		<sequential>
+			<echo message="@{name}: @{value}" />
+			<property name="@{name}" value="@{value}" />
+		</sequential>
+	</macrodef>
+
+	<scriptdef language="javascript" name="update-version">
+		<attribute name="revision" />
+		<attribute name="minor" />
+		<attribute name="major" />
+		<![CDATA[
+			var revision=parseFloat(project.getProperty("build.revision.number"));
+			var revisionString;
+			var minor=parseFloat(project.getProperty("build.minor.number"));
+			var major=parseFloat(project.getProperty("build.major.number"));
+			if(attributes.get( "revision" )=="true")
+			{
+				revision=revision+1;
+			}
+			if(attributes.get( "minor" )=="true")
+			{
+				minor=minor+1;
+			}
+			if(attributes.get( "major" )=="true")
+			{
+				major=major+1;
+			}
+			if(revision>999)
+			{
+				revision=0;
+				minor=minor+1;
+			}
+			if(minor>9)
+			{
+				minor=0;
+				revision=0;
+				major=major+1;
+			}
+			if(revision<10)
+			{
+				revisionString="00"+revision;
+			}else if(revision<100)
+			{
+				revisionString="0"+revision;
+			}else{
+				revisionString=revision;
+			}
+			project.setProperty( "revision",revisionString );
+			project.setProperty( "minor",minor);
+			project.setProperty( "major",major);
+		 ]]>
+
+		</scriptdef>
+
+		<tstamp>
+			<format property="date" pattern="d-MM-yy" locale="en,UK" />
+		</tstamp>
+
+		<target name="0.a update-revision-number" description="Bug fix">
+			<update-version revision="true" minor="false" major="false" />
+			<propertyfile file="ant/build-info.properties">
+				<entry key="build.revision.number" value="${revision}" />
+				<entry key="build.minor.number" value="${minor}" />
+				<entry key="build.major.number" value="${major}" />
+			</propertyfile>
+			<setProperty name="build.number" value="${major}.${minor}.${revision}" />
+			<eclipse.refreshLocal resource="${project.name}" depth="infinite" />
+		</target>
+
+		<target name="0.b update-minor-version" description="Feature fixes and small adjustments">
+			<update-version revision="false" minor="true" major="false" />
+			<propertyfile file="ant/build-info.properties">
+				<entry key="build.revision.number" value="${revision}" />
+				<entry key="build.minor.number" value="${minor}" />
+				<entry key="build.major.number" value="${major}" />
+			</propertyfile>
+			<setProperty name="build.number" value="${major}.${minor}.${revision}" />
+			<eclipse.refreshLocal resource="${project.name}" depth="infinite" />
+		</target>
+
+		<target name="0.c update-major-version" description="New features and other large changes">
+			<update-version revision="false" minor="false" major="true" />
+			<propertyfile file="ant/build-info.properties">
+				<entry key="build.revision.number" value="${revision}" />
+				<entry key="build.minor.number" value="${minor}" />
+				<entry key="build.major.number" value="${major}" />
+			</propertyfile>
+			<setProperty name="build.number" value="${major}.${minor}.${revision}" />
+			<eclipse.refreshLocal resource="${project.name}" depth="infinite" />
+		</target>
+
+		<target name="0.d build-number">
+			<update-version revision="false" minor="false" major="false" />
+			<setProperty name="build.number" value="${major}.${minor}.${revision}" />
+		</target>
+
+
+		<target name="1.a Create New Test" description="2.a Create New Test">
+
+			<input message="Name:" addproperty="test.name" defaultvalue="${date}-" />
+			<input message="Title:" addproperty="test.title" defaultvalue="${test.name}" />
+
+			<setProperty name="test.index.html" value="${project.bin.test}/${test.name}/index.html" />
+			<setProperty name="test.normalize.css" value="${project.bin.test}/${test.name}/css/normalize.css" />
+			<setProperty name="test.jQuery.js" value="${project.bin.test}/${test.name}/js/libs/jquery-${jQueryVersion}.min.js" />
+
+			<propertyfile file="${basedir}/ant/build-info.properties">
+				<entry key="current.test" type="string" value="${test.name}" />
+			</propertyfile>
+
+
+			<mkdir dir="${project.bin.test}/${test.name}" />
+			<mkdir dir="${project.bin.test}/${test.name}/css" />
+			<mkdir dir="${project.bin.test}/${test.name}/img" />
+			<mkdir dir="${project.bin.test}/${test.name}/js" />
+			<mkdir dir="${project.bin.test}/${test.name}/js/libs" />
+
+			<!-- copy index template -->
+			<copy file="${project.bin.templates}/index.html" tofile="${test.index.html}" />
+			<copy file="${project.bin.templates}/css/normalize.css" tofile="${test.normalize.css}" />
+
+			<!-- replace title -->
+			<replaceregexp flags="-g">
+				<fileset dir="${project.bin.test}/${test.name}" />
+				<regexp pattern="%title" />
+				<substitution expression="${test.title}" />
+			</replaceregexp>
+
+			<replaceregexp flags="-g">
+				<fileset dir="${project.bin.test}/${test.name}" />
+				<regexp pattern="%jQueryVersion" />
+				<substitution expression="${jQueryVersion}" />
+			</replaceregexp>
+
+			<eclipse.refreshLocal resource="${project.name}" depth="infinite" />
+		</target>
+
+
+	</project>
